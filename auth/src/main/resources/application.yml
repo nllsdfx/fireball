@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: fireball
+  datasource:
+    url: jdbc:postgresql://localhost:5432/fireball
+    username: fireball
+    password: fireball
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    default-schema: auth
+
+netty:
+  port: 3724
+  boss-threads: 1
+  worker-threads: 0

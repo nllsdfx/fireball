@@ -1,0 +1,3 @@
+CREATE SCHEMA auth;
+CREATE SCHEMA world;
+CREATE SCHEMA characters;
