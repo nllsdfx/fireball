@@ -15,10 +15,11 @@ public class WorldAccountRepository {
 
     private final DSLContext dsl;
 
-    public String findSessionKeyByUsername(String username) {
-        return dsl.select(field("session_key", String.class))
+    public byte[] findSessionKeyByUsername(String username) {
+        var sessionKey = field("session_key", byte[].class);
+        return dsl.select(sessionKey)
                 .from(table("auth.account"))
                 .where(upper(field("username", String.class)).eq(upper(val(username))))
-                .fetchOneInto(String.class);
+                .fetchOne(sessionKey);
     }
 }

@@ -4,8 +4,6 @@ import com.example.world.persistence.repository.WorldAccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HexFormat;
-
 @Service
 @RequiredArgsConstructor
 public class WorldAccountServiceImpl implements WorldAccountService {
@@ -14,8 +12,6 @@ public class WorldAccountServiceImpl implements WorldAccountService {
 
     @Override
     public byte[] findSessionKey(String username) {
-        String hex = accountRepository.findSessionKeyByUsername(username);
-        if (hex == null || hex.isBlank()) return null;
-        return HexFormat.of().parseHex(hex);
+        return accountRepository.findSessionKeyByUsername(username);
     }
 }
