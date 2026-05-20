@@ -11,4 +11,9 @@ public record LogonProofResponse(
         byte error,
         byte[] serverProof,
         int accountFlags
-) implements AuthResponse {}
+) implements AuthResponse {
+
+    public static LogonProofResponse error(byte code) {
+        return new LogonProofResponse(code, null, 0);
+    }
+}

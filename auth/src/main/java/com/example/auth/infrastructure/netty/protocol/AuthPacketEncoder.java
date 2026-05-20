@@ -5,10 +5,12 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
+import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 
 @ChannelHandler.Sharable
+@Component
 public class AuthPacketEncoder extends MessageToByteEncoder<AuthResponse> {
 
     private static final int SRP6_KEY_LENGTH = 32;

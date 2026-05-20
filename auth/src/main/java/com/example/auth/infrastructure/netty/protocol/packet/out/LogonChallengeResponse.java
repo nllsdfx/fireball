@@ -19,4 +19,9 @@ public record LogonChallengeResponse(
         byte[] salt,
         byte[] crcSalt,
         byte securityFlags
-) implements AuthResponse {}
+) implements AuthResponse {
+
+    public static LogonChallengeResponse error(byte code) {
+        return new LogonChallengeResponse(code, null, (byte) 0, null, null, null, (byte) 0);
+    }
+}
