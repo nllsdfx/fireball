@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: fireball-world
+
+netty:
+  port: 8085
+  boss-threads: 1
+  worker-threads: 0
+
+#logging:
+#  level:
+#    root: debug

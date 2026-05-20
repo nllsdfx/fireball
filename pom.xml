@@ -21,6 +21,7 @@
   <modules>
     <module>auth</module>
     <module>shared</module>
+    <module>world</module>
   </modules>
 
   <properties>
