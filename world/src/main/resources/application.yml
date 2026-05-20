@@ -1,6 +1,11 @@
 spring:
   application:
     name: fireball-world
+  datasource:
+    url: jdbc:postgresql://localhost:5432/fireball
+    username: fireball
+    password: fireball
+    driver-class-name: org.postgresql.Driver
 
 netty:
   port: 8085

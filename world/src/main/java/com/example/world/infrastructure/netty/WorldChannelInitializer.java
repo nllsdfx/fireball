@@ -3,6 +3,7 @@ package com.example.world.infrastructure.netty;
 import com.example.world.infrastructure.netty.handler.WorldSessionHandler;
 import com.example.world.infrastructure.netty.protocol.WorldPacketDecoder;
 import com.example.world.infrastructure.netty.protocol.WorldPacketEncoder;
+import com.example.world.service.WorldAccountService;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 public class WorldChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     private final WorldPacketEncoder encoder;
+    private final WorldAccountService accountService;
 
     @Override
     protected void initChannel(SocketChannel ch) {
@@ -22,6 +24,6 @@ public class WorldChannelInitializer extends ChannelInitializer<SocketChannel> {
                 .addLast(new LoggingHandler(LogLevel.DEBUG))
                 .addLast(encoder)
                 .addLast(new WorldPacketDecoder())
-                .addLast(new WorldSessionHandler());
+                .addLast(new WorldSessionHandler(accountService));
     }
 }

@@ -13,7 +13,8 @@ public enum WorldOpcode {
 
     S_MSG_AUTH_CHALLENGE(0x1EC),
     C_MSG_AUTH_SESSION(0x1ED),
-    S_MSG_AUTH_RESPONSE(0x1EE);
+    S_MSG_AUTH_RESPONSE(0x1EE),
+    S_MSG_ADDON_INFO(0x2EF);
 
     private final int code;
 
