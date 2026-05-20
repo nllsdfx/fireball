@@ -9,7 +9,11 @@ import com.example.auth.infrastructure.netty.protocol.packet.in.RealmListRequest
 import com.example.auth.infrastructure.netty.protocol.packet.out.AuthResponse;
 import com.example.auth.infrastructure.netty.protocol.packet.out.LogonChallengeResponse;
 import com.example.auth.infrastructure.netty.protocol.packet.out.LogonProofResponse;
+import com.example.auth.infrastructure.netty.protocol.packet.out.RealmEntry;
+import com.example.auth.infrastructure.netty.protocol.packet.out.RealmListResponse;
 import com.example.auth.persistence.generated.tables.records.AccountRecord;
+import com.example.auth.persistence.generated.tables.records.RealmRecord;
+import com.example.auth.persistence.repository.RealmRepository;
 import com.example.auth.service.AccountService;
 import com.example.auth.service.AuthErrorCode;
 import com.example.auth.service.AuthProtocolException;
@@ -18,6 +22,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -30,14 +35,16 @@ public class AuthSessionHandler extends SimpleChannelInboundHandler<Object> {
 
     private final Srp6Service srp6Service;
     private final AccountService accountService;
+    private final RealmRepository realmRepository;
 
     private State state = State.CHALLENGE;
     private String accountName;
     private Srp6Challenge srp6Challenge;
 
-    public AuthSessionHandler(Srp6Service srp6Service, AccountService accountService) {
+    public AuthSessionHandler(Srp6Service srp6Service, AccountService accountService, RealmRepository realmRepository) {
         this.srp6Service = srp6Service;
         this.accountService = accountService;
+        this.realmRepository = realmRepository;
     }
 
     @Override
@@ -125,13 +132,33 @@ public class AuthSessionHandler extends SimpleChannelInboundHandler<Object> {
         });
     }
 
-    private void handleRealmList(ChannelHandlerContext ctx, RealmListRequestPacket packet) {
+    private void handleRealmList(ChannelHandlerContext ctx, RealmListRequestPacket ignored) {
         if (state != State.REALM_LIST) {
             log.warn("Unexpected REALM_LIST in state {}", state);
             ctx.close();
             return;
         }
-        // TODO: load realms from auth.realm via RealmRepository, send RealmListResponse
+
+        Thread.ofVirtual().start(() -> {
+            try {
+                List<RealmRecord> records = realmRepository.findAll();
+                List<RealmEntry> entries = records.stream()
+                        .map(r -> new RealmEntry(
+                                r.getIcon().byteValue(),
+                                (byte) 0,
+                                r.getName(),
+                                r.getAddress(),
+                                r.getPopulation(),
+                                (byte) 0,
+                                r.getTimezone().byteValue(),
+                                r.getId().byteValue()))
+                        .toList();
+                ctx.channel().eventLoop().execute(() ->
+                        ctx.writeAndFlush(new RealmListResponse(entries)));
+            } catch (Exception e) {
+                ctx.channel().eventLoop().execute(() -> exceptionCaught(ctx, e));
+            }
+        });
     }
 
     @Override

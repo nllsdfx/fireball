@@ -14,3 +14,7 @@ netty:
   port: 3724
   boss-threads: 1
   worker-threads: 0
+
+logging:
+  level:
+    root: debug

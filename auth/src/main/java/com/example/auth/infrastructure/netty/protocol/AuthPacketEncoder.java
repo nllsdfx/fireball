@@ -50,9 +50,7 @@ public class AuthPacketEncoder extends MessageToByteEncoder<AuthResponse> {
         if (r.error() != 0) return;
 
         out.writeBytes(r.serverProof());           // M2 — 20 bytes
-        out.writeIntLE(r.accountFlags());
-        out.writeIntLE(0);                   // surveyId
-        out.writeShortLE(0);                 // unk
+        out.writeIntLE(r.accountFlags());          // LoginFlags (1.12: always 0; TBC+ adds surveyId + unkFlags)
     }
 
     private void encodeRealmList(RealmListResponse r, ByteBuf out) {
@@ -63,10 +61,9 @@ public class AuthPacketEncoder extends MessageToByteEncoder<AuthResponse> {
 
         int payloadStart = out.writerIndex();
         out.writeIntLE(0);                         // unk
-        out.writeShortLE(r.realms().size());
+        out.writeByte(r.realms().size());
         for (RealmEntry realm : r.realms()) {
-            out.writeByte(realm.icon());
-            out.writeByte(0x00);                   // lock flag
+            out.writeIntLE(realm.icon());          // uint32 in 1.12 wire format
             out.writeByte(realm.flags());
             writeNullTerminated(out, realm.name());
             writeNullTerminated(out, realm.address());
@@ -75,7 +72,7 @@ public class AuthPacketEncoder extends MessageToByteEncoder<AuthResponse> {
             out.writeByte(realm.timezone());
             out.writeByte(realm.realmId());
         }
-        out.writeShortLE(0x0010);                  // unk2
+        out.writeShortLE(0x0002);                  // unk2 (1.12 trailer; TBC+ uses 0x0010)
 
         int payloadSize = out.writerIndex() - payloadStart;
         out.setShortLE(sizeIndex, payloadSize);
