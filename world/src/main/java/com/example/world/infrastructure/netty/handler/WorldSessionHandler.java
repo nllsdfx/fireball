@@ -1,11 +1,14 @@
 package com.example.world.infrastructure.netty.handler;
 
+import com.example.world.domain.port.in.CharacterUseCase;
 import com.example.world.infrastructure.netty.crypto.CipherAttr;
 import com.example.world.infrastructure.netty.crypto.WorldCipher;
 import com.example.world.infrastructure.netty.protocol.packet.in.AuthSessionPacket;
+import com.example.world.infrastructure.netty.protocol.packet.in.CharEnumRequest;
 import com.example.world.infrastructure.netty.protocol.packet.out.AddonInfoMessage;
 import com.example.world.infrastructure.netty.protocol.packet.out.AuthChallengeMessage;
 import com.example.world.infrastructure.netty.protocol.packet.out.AuthResponseMessage;
+import com.example.world.infrastructure.netty.protocol.packet.out.CharEnumResponse;
 import com.example.world.service.WorldAccountService;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -38,14 +41,15 @@ public class WorldSessionHandler extends SimpleChannelInboundHandler<Object> {
     private enum State { AUTH_SESSION, IN_WORLD, CLOSED }
 
     private final WorldAccountService accountService;
+    private final CharacterUseCase characterUseCase;
 
     private State state = State.AUTH_SESSION;
     private int serverSeed;
+    private volatile Long accountId;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         serverSeed = SECURE_RANDOM.nextInt();
-        state = State.AUTH_SESSION;
         ctx.writeAndFlush(new AuthChallengeMessage(serverSeed));
         log.debug("World connection from {}, seed=0x{}", ctx.channel().remoteAddress(), Integer.toHexString(serverSeed));
     }
@@ -54,6 +58,7 @@ public class WorldSessionHandler extends SimpleChannelInboundHandler<Object> {
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
         switch (msg) {
             case AuthSessionPacket pkt -> handleAuthSession(ctx, pkt);
+            case CharEnumRequest ignored -> handleCharEnum(ctx);
             default -> {
                 log.warn("Unexpected message type {}, closing", msg.getClass().getSimpleName());
                 ctx.close();
@@ -71,27 +76,28 @@ public class WorldSessionHandler extends SimpleChannelInboundHandler<Object> {
 
         Thread.ofVirtual().start(() -> {
             try {
-                byte[] sessionKey = accountService.findSessionKey(pkt.account());
-                if (sessionKey == null) {
+                var session = accountService.findAccountSession(pkt.account());
+                if (session == null || session.sessionKey() == null) {
                     log.warn("Account '{}' not found or session key missing", pkt.account());
                     rejectOnEventLoop(ctx, AuthResponseMessage.AUTH_UNKNOWN_ACCOUNT);
                     return;
                 }
 
-                if (!verifyDigest(pkt, sessionKey)) {
+                if (!verifyDigest(pkt, session.sessionKey())) {
                     log.warn("Digest mismatch for account '{}'", pkt.account());
                     rejectOnEventLoop(ctx, AuthResponseMessage.AUTH_FAILED);
                     return;
                 }
 
-                WorldCipher cipher = new WorldCipher(sessionKey);
+                WorldCipher cipher = new WorldCipher(session.sessionKey());
 
                 ctx.channel().eventLoop().execute(() -> {
+                    accountId = session.id();
                     ctx.channel().attr(CipherAttr.KEY).set(cipher);
                     ctx.write(new AddonInfoMessage(pkt.addonCount()));
                     ctx.writeAndFlush(AuthResponseMessage.ok());
                     state = State.IN_WORLD;
-                    log.info("Account '{}' authenticated on world server", pkt.account());
+                    log.info("Account '{}' (id={}) authenticated on world server", pkt.account(), accountId);
                 });
             } catch (Exception e) {
                 ctx.channel().eventLoop().execute(() -> exceptionCaught(ctx, e));
@@ -99,10 +105,24 @@ public class WorldSessionHandler extends SimpleChannelInboundHandler<Object> {
         });
     }
 
-    /**
-     * Replicates cmangos HandleAuthSession digest check:
-     * SHA1(account + [0x00000000] + clientSeed_LE + serverSeed_LE + sessionKey_LE)
-     */
+    private void handleCharEnum(ChannelHandlerContext ctx) {
+        if (state != State.IN_WORLD) {
+            log.warn("CMSG_CHAR_ENUM in wrong state {}, closing", state);
+            ctx.close();
+            return;
+        }
+
+        Thread.ofVirtual().start(() -> {
+            try {
+                var characters = characterUseCase.listCharacters(accountId);
+                ctx.channel().eventLoop().execute(() ->
+                        ctx.writeAndFlush(new CharEnumResponse(characters)));
+            } catch (Exception e) {
+                ctx.channel().eventLoop().execute(() -> exceptionCaught(ctx, e));
+            }
+        });
+    }
+
     private boolean verifyDigest(AuthSessionPacket pkt, byte[] sessionKey) {
         try {
             MessageDigest sha1 = (MessageDigest) SHA1_PROTO.clone();

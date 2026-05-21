@@ -1,5 +1,6 @@
 package com.example.world.persistence.repository;
 
+import com.example.world.service.AccountSession;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
@@ -15,11 +16,13 @@ public class WorldAccountRepository {
 
     private final DSLContext dsl;
 
-    public byte[] findSessionKeyByUsername(String username) {
-        var sessionKey = field("session_key", byte[].class);
-        return dsl.select(sessionKey)
+    public AccountSession findAccountSession(String username) {
+        return dsl.select(field("id", Long.class), field("session_key", byte[].class))
                 .from(table("auth.account"))
                 .where(upper(field("username", String.class)).eq(upper(val(username))))
-                .fetchOne(sessionKey);
+                .fetchOne(r -> new AccountSession(
+                        r.get(field("id", Long.class)),
+                        r.get(field("session_key", byte[].class))
+                ));
     }
 }

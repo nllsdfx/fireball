@@ -3,6 +3,7 @@ package com.example.world.infrastructure.netty.protocol;
 import com.example.world.infrastructure.netty.crypto.CipherAttr;
 import com.example.world.infrastructure.netty.crypto.WorldCipher;
 import com.example.world.infrastructure.netty.protocol.packet.in.AuthSessionPacket;
+import com.example.world.infrastructure.netty.protocol.packet.in.CharEnumRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ReplayingDecoder;
@@ -67,6 +68,7 @@ public class WorldPacketDecoder extends ReplayingDecoder<WorldPacketDecoder.Step
                     } else {
                         switch (opcode) {
                             case C_MSG_AUTH_SESSION -> out.add(decodeAuthSession(body));
+                            case C_MSG_CHAR_ENUM -> out.add(new CharEnumRequest());
                             default -> log.warn("Unhandled opcode {}, dropping", opcode);
                         }
                     }

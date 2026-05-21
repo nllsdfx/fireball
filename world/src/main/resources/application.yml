@@ -1,6 +1,8 @@
 spring:
   application:
     name: fireball-world
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
   datasource:
     url: jdbc:postgresql://localhost:5432/fireball
     username: fireball

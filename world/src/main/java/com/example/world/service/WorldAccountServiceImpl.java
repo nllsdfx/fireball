@@ -11,7 +11,7 @@ public class WorldAccountServiceImpl implements WorldAccountService {
     private final WorldAccountRepository accountRepository;
 
     @Override
-    public byte[] findSessionKey(String username) {
-        return accountRepository.findSessionKeyByUsername(username);
+    public AccountSession findAccountSession(String username) {
+        return accountRepository.findAccountSession(username);
     }
 }

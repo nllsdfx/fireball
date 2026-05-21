@@ -1,6 +1,8 @@
 package com.example.world.infrastructure.netty.protocol.packet.out;
 
-// SMSG_AUTH_RESPONSE — result of CMSG_AUTH_SESSION verification
+import com.example.world.infrastructure.netty.protocol.WorldOpcode;
+import io.netty.buffer.ByteBuf;
+
 public record AuthResponseMessage(byte result) implements ServerMessage {
 
     public static final byte AUTH_OK = 0x0C;
@@ -14,5 +16,18 @@ public record AuthResponseMessage(byte result) implements ServerMessage {
 
     public static AuthResponseMessage failed() {
         return new AuthResponseMessage(AUTH_FAILED);
+    }
+
+    @Override
+    public WorldOpcode opcode() {
+        return WorldOpcode.S_MSG_AUTH_RESPONSE;
+    }
+
+    @Override
+    public void encode(ByteBuf buf) {
+        buf.writeByte(result);
+        if (result == AUTH_OK) {
+            buf.writeZero(9); // BillingTimeRemaining[4] + BillingPlanFlags[1] + BillingTimeRested[4]
+        }
     }
 }

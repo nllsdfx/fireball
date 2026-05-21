@@ -1,5 +1,6 @@
 package com.example.world.infrastructure.netty;
 
+import com.example.world.domain.port.in.CharacterUseCase;
 import com.example.world.infrastructure.netty.handler.WorldSessionHandler;
 import com.example.world.infrastructure.netty.protocol.WorldPacketDecoder;
 import com.example.world.infrastructure.netty.protocol.WorldPacketEncoder;
@@ -17,6 +18,7 @@ public class WorldChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     private final WorldPacketEncoder encoder;
     private final WorldAccountService accountService;
+    private final CharacterUseCase characterUseCase;
 
     @Override
     protected void initChannel(SocketChannel ch) {
@@ -24,6 +26,6 @@ public class WorldChannelInitializer extends ChannelInitializer<SocketChannel> {
                 .addLast(new LoggingHandler(LogLevel.DEBUG))
                 .addLast(encoder)
                 .addLast(new WorldPacketDecoder())
-                .addLast(new WorldSessionHandler(accountService));
+                .addLast(new WorldSessionHandler(accountService, characterUseCase));
     }
 }
