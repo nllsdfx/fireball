@@ -19,6 +19,7 @@ public class WorldChannelInitializer extends ChannelInitializer<SocketChannel> {
     private final WorldPacketEncoder encoder;
     private final WorldAccountService accountService;
     private final CharacterUseCase characterUseCase;
+    private final WorldUpdateLoop updateLoop;
 
     @Override
     protected void initChannel(SocketChannel ch) {
@@ -26,6 +27,6 @@ public class WorldChannelInitializer extends ChannelInitializer<SocketChannel> {
                 .addLast(new LoggingHandler(LogLevel.DEBUG))
                 .addLast(encoder)
                 .addLast(new WorldPacketDecoder())
-                .addLast(new WorldSessionHandler(accountService, characterUseCase));
+                .addLast(new WorldSessionHandler(accountService, characterUseCase, updateLoop));
     }
 }
