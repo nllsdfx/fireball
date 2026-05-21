@@ -1,10 +1,9 @@
 package com.example.world.infrastructure.netty.handler;
 
-import com.example.world.domain.port.in.CharacterUseCase;
 import com.example.world.infrastructure.netty.WorldUpdateLoop;
 import com.example.world.infrastructure.netty.protocol.packet.out.AuthChallengeMessage;
+import com.example.world.infrastructure.netty.session.HandlerRegistry;
 import com.example.world.infrastructure.netty.session.WorldSession;
-import com.example.world.service.WorldAccountService;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.RequiredArgsConstructor;
@@ -18,15 +17,14 @@ public class WorldSessionHandler extends SimpleChannelInboundHandler<Object> {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    private final WorldAccountService accountService;
-    private final CharacterUseCase characterUseCase;
+    private final HandlerRegistry registry;
     private final WorldUpdateLoop updateLoop;
 
     private WorldSession session;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        session = new WorldSession(accountService, characterUseCase);
+        session = new WorldSession(registry);
         session.setCtx(ctx);
         session.setServerSeed(SECURE_RANDOM.nextInt());
         ctx.writeAndFlush(new AuthChallengeMessage(session.getServerSeed()));

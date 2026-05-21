@@ -1,10 +1,9 @@
 package com.example.world.infrastructure.netty;
 
-import com.example.world.domain.port.in.CharacterUseCase;
 import com.example.world.infrastructure.netty.handler.WorldSessionHandler;
 import com.example.world.infrastructure.netty.protocol.WorldPacketDecoder;
 import com.example.world.infrastructure.netty.protocol.WorldPacketEncoder;
-import com.example.world.service.WorldAccountService;
+import com.example.world.infrastructure.netty.session.HandlerRegistry;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
@@ -17,8 +16,7 @@ import org.springframework.stereotype.Component;
 public class WorldChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     private final WorldPacketEncoder encoder;
-    private final WorldAccountService accountService;
-    private final CharacterUseCase characterUseCase;
+    private final HandlerRegistry registry;
     private final WorldUpdateLoop updateLoop;
 
     @Override
@@ -27,6 +25,6 @@ public class WorldChannelInitializer extends ChannelInitializer<SocketChannel> {
                 .addLast(new LoggingHandler(LogLevel.DEBUG))
                 .addLast(encoder)
                 .addLast(new WorldPacketDecoder())
-                .addLast(new WorldSessionHandler(accountService, characterUseCase, updateLoop));
+                .addLast(new WorldSessionHandler(registry, updateLoop));
     }
 }
