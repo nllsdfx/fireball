@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface CharacterRepository {
     @NonNull List<Character> findByAccountId(@NonNull Long accountId);
+    void create(@NonNull Character character);
 }

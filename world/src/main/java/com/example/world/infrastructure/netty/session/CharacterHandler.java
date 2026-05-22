@@ -1,11 +1,19 @@
 package com.example.world.infrastructure.netty.session;
 
+import com.example.world.domain.model.Character;
+import com.example.world.domain.model.CharClass;
+import com.example.world.domain.model.Gender;
+import com.example.world.domain.model.Race;
+import com.example.world.domain.model.RaceStartPosition;
 import com.example.world.domain.port.in.CharacterUseCase;
+import com.example.world.infrastructure.netty.protocol.packet.in.CharCreateRequest;
 import com.example.world.infrastructure.netty.protocol.packet.in.CharEnumRequest;
+import com.example.world.infrastructure.netty.protocol.packet.out.CharCreateResponse;
 import com.example.world.infrastructure.netty.protocol.packet.out.CharEnumResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.exception.DataAccessException;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -17,7 +25,34 @@ public class CharacterHandler extends HandlerMap {
 
     @PostConstruct
     void register() {
-        on(CharEnumRequest.class, WorldSession.State.IN_WORLD, this::handleCharEnum);
+        on(CharCreateRequest.class, WorldSession.State.IN_WORLD, this::handleCharCreate);
+        on(CharEnumRequest.class,   WorldSession.State.IN_WORLD, this::handleCharEnum);
+    }
+
+    private void handleCharCreate(WorldSession session, CharCreateRequest req) {
+        Race race         = Race.fromId(req.race());
+        CharClass cls     = CharClass.fromId(req.charClass());
+        Gender gender     = Gender.fromId(req.gender());
+
+        if (race == null || cls == null || gender == null) {
+            session.getCtx().writeAndFlush(new CharCreateResponse(CharCreateResponse.Result.ERROR));
+            return;
+        }
+
+        var start = RaceStartPosition.forRace(race);
+        var character = new Character(null, session.getAccountId(), req.name(),
+                race, cls, gender,
+                req.skin(), req.face(), req.hairStyle(), req.hairColor(), req.facialHair(),
+                (short) 1, start.getZone(), start.toPosition());
+
+        session.async(() -> {
+            try {
+                characterUseCase.createCharacter(character);
+                return () -> session.getCtx().writeAndFlush(new CharCreateResponse(CharCreateResponse.Result.SUCCESS));
+            } catch (DataAccessException e) {
+                return () -> session.getCtx().writeAndFlush(new CharCreateResponse(CharCreateResponse.Result.NAME_IN_USE));
+            }
+        });
     }
 
     private void handleCharEnum(WorldSession session, CharEnumRequest ignored) {

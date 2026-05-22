@@ -3,6 +3,7 @@ package com.example.world.infrastructure.netty.protocol;
 import com.example.world.infrastructure.netty.crypto.CipherAttr;
 import com.example.world.infrastructure.netty.crypto.WorldCipher;
 import com.example.world.infrastructure.netty.protocol.packet.in.AuthSessionPacket;
+import com.example.world.infrastructure.netty.protocol.packet.in.CharCreateRequest;
 import com.example.world.infrastructure.netty.protocol.packet.in.CharEnumRequest;
 import com.example.world.infrastructure.netty.protocol.packet.in.PingRequest;
 import io.netty.buffer.ByteBuf;
@@ -87,10 +88,25 @@ public class WorldPacketDecoder extends ReplayingDecoder<WorldPacketDecoder.Step
         }
         switch (opcode) {
             case C_MSG_AUTH_SESSION -> out.add(decodeAuthSession(body));
+            case C_MSG_CHAR_CREATE  -> out.add(decodeCharCreate(body));
             case C_MSG_CHAR_ENUM    -> out.add(new CharEnumRequest());
             case C_MSG_PING         -> out.add(new PingRequest(body.readIntLE()));
             default -> log.warn("Unhandled opcode {}, dropping", opcode);
         }
+    }
+
+    private CharCreateRequest decodeCharCreate(ByteBuf buf) {
+        String name      = readNullTerminatedString(buf);
+        short race       = buf.readUnsignedByte();
+        short charClass  = buf.readUnsignedByte();
+        short gender     = buf.readUnsignedByte();
+        short skin       = buf.readUnsignedByte();
+        short face       = buf.readUnsignedByte();
+        short hairStyle  = buf.readUnsignedByte();
+        short hairColor  = buf.readUnsignedByte();
+        short facialHair = buf.readUnsignedByte();
+        buf.skipBytes(1); // outfitId — always 0
+        return new CharCreateRequest(name, race, charClass, gender, skin, face, hairStyle, hairColor, facialHair);
     }
 
     private AuthSessionPacket decodeAuthSession(ByteBuf buf) {

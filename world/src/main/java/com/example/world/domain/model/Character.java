@@ -10,12 +10,12 @@ public class Character {
     Race race;
     CharClass charClass;
     Gender gender;
-    int skin;
-    int face;
-    int hairStyle;
-    int hairColor;
-    int facialHair;
-    int level;
+    short skin;
+    short face;
+    short hairStyle;
+    short hairColor;
+    short facialHair;
+    short level;
     Integer zone;
     Position position;
 }

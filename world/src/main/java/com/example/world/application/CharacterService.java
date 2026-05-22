@@ -19,4 +19,9 @@ public class CharacterService implements CharacterUseCase {
     public @NonNull List<Character> listCharacters(@NonNull Long accountId) {
         return characterRepository.findByAccountId(accountId);
     }
+
+    @Override
+    public void createCharacter(@NonNull Character character) {
+        characterRepository.create(character);
+    }
 }
