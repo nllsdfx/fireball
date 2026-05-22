@@ -7,8 +7,10 @@ import com.example.world.domain.model.Race;
 import com.example.world.domain.model.RaceStartPosition;
 import com.example.world.domain.port.in.CharacterUseCase;
 import com.example.world.infrastructure.netty.protocol.packet.in.CharCreateRequest;
+import com.example.world.infrastructure.netty.protocol.packet.in.CharDeleteRequest;
 import com.example.world.infrastructure.netty.protocol.packet.in.CharEnumRequest;
 import com.example.world.infrastructure.netty.protocol.packet.out.CharCreateResponse;
+import com.example.world.infrastructure.netty.protocol.packet.out.CharDeleteResponse;
 import com.example.world.infrastructure.netty.protocol.packet.out.CharEnumResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class CharacterHandler extends HandlerMap {
     @PostConstruct
     void register() {
         on(CharCreateRequest.class, WorldSession.State.IN_WORLD, this::handleCharCreate);
+        on(CharDeleteRequest.class, WorldSession.State.IN_WORLD, this::handleCharDelete);
         on(CharEnumRequest.class,   WorldSession.State.IN_WORLD, this::handleCharEnum);
     }
 
@@ -52,6 +55,14 @@ public class CharacterHandler extends HandlerMap {
             } catch (DataAccessException e) {
                 return () -> session.getCtx().writeAndFlush(new CharCreateResponse(CharCreateResponse.Result.NAME_IN_USE));
             }
+        });
+    }
+
+    private void handleCharDelete(WorldSession session, CharDeleteRequest req) {
+        session.async(() -> {
+            boolean deleted = characterUseCase.deleteCharacter(req.guid(), session.getAccountId());
+            var result = deleted ? CharDeleteResponse.Result.SUCCESS : CharDeleteResponse.Result.FAILED;
+            return () -> session.getCtx().writeAndFlush(new CharDeleteResponse(result));
         });
     }
 

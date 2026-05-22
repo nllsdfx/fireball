@@ -8,4 +8,5 @@ import java.util.List;
 public interface CharacterRepository {
     @NonNull List<Character> findByAccountId(@NonNull Long accountId);
     void create(@NonNull Character character);
+    boolean delete(@NonNull Long characterId, @NonNull Long accountId);
 }

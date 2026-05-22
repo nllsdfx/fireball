@@ -44,6 +44,13 @@ public class CharacterRepositoryImpl implements CharacterRepository {
     }
 
     @Override
+    public boolean delete(@NonNull Long characterId, @NonNull Long accountId) {
+        return dsl.deleteFrom(CHARACTER)
+                .where(CHARACTER.ID.eq(characterId).and(CHARACTER.ACCOUNT_ID.eq(accountId)))
+                .execute() == 1;
+    }
+
+    @Override
     public @NonNull List<Character> findByAccountId(@NonNull Long accountId) {
         return dsl.selectFrom(CHARACTER)
                 .where(CHARACTER.ACCOUNT_ID.eq(accountId))

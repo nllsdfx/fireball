@@ -24,4 +24,9 @@ public class CharacterService implements CharacterUseCase {
     public void createCharacter(@NonNull Character character) {
         characterRepository.create(character);
     }
+
+    @Override
+    public boolean deleteCharacter(@NonNull Long characterId, @NonNull Long accountId) {
+        return characterRepository.delete(characterId, accountId);
+    }
 }

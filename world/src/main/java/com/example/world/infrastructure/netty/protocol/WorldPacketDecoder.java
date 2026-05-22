@@ -4,6 +4,7 @@ import com.example.world.infrastructure.netty.crypto.CipherAttr;
 import com.example.world.infrastructure.netty.crypto.WorldCipher;
 import com.example.world.infrastructure.netty.protocol.packet.in.AuthSessionPacket;
 import com.example.world.infrastructure.netty.protocol.packet.in.CharCreateRequest;
+import com.example.world.infrastructure.netty.protocol.packet.in.CharDeleteRequest;
 import com.example.world.infrastructure.netty.protocol.packet.in.CharEnumRequest;
 import com.example.world.infrastructure.netty.protocol.packet.in.PingRequest;
 import io.netty.buffer.ByteBuf;
@@ -90,6 +91,7 @@ public class WorldPacketDecoder extends ReplayingDecoder<WorldPacketDecoder.Step
             case C_MSG_AUTH_SESSION -> out.add(decodeAuthSession(body));
             case C_MSG_CHAR_CREATE  -> out.add(decodeCharCreate(body));
             case C_MSG_CHAR_ENUM    -> out.add(new CharEnumRequest());
+            case C_MSG_CHAR_DELETE  -> out.add(new CharDeleteRequest(body.readLongLE()));
             case C_MSG_PING         -> out.add(new PingRequest(body.readIntLE()));
             default -> log.warn("Unhandled opcode {}, dropping", opcode);
         }

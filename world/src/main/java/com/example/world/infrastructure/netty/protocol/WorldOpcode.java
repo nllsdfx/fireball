@@ -19,6 +19,8 @@ public enum WorldOpcode {
     S_MSG_CHAR_CREATE(0x03A),
     C_MSG_CHAR_ENUM(0x037),
     S_MSG_CHAR_ENUM(0x03B),
+    C_MSG_CHAR_DELETE(0x038),
+    S_MSG_CHAR_DELETE(0x03C),
     C_MSG_PING(0x1DC),
     S_MSG_PONG(0x1DD);
 
