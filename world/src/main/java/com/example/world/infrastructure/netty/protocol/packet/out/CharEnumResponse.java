@@ -9,7 +9,7 @@ import java.util.List;
 
 public record CharEnumResponse(List<Character> characters) implements ServerMessage {
 
-    private static final int EQUIPMENT_SLOTS = 19;
+    private static final int EQUIPMENT_SLOTS = 20; // EQUIPMENT_SLOT_END(19) + bag slot 0
 
     @Override
     public WorldOpcode opcode() {

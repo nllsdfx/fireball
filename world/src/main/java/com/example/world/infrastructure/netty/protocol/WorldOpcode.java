@@ -16,7 +16,9 @@ public enum WorldOpcode {
     S_MSG_AUTH_RESPONSE(0x1EE),
     S_MSG_ADDON_INFO(0x2EF),
     C_MSG_CHAR_ENUM(0x037),
-    S_MSG_CHAR_ENUM(0x03B);
+    S_MSG_CHAR_ENUM(0x03B),
+    C_MSG_PING(0x1DC),
+    S_MSG_PONG(0x1DD);
 
     private final int code;
 

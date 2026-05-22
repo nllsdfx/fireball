@@ -4,7 +4,9 @@ import com.example.world.infrastructure.netty.crypto.CipherAttr;
 import com.example.world.infrastructure.netty.crypto.WorldCipher;
 import com.example.world.infrastructure.netty.protocol.packet.in.AuthSessionPacket;
 import com.example.world.infrastructure.netty.protocol.packet.in.CharEnumRequest;
+import com.example.world.infrastructure.netty.protocol.packet.in.PingRequest;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ReplayingDecoder;
 import lombok.extern.slf4j.Slf4j;
@@ -57,26 +59,37 @@ public class WorldPacketDecoder extends ReplayingDecoder<WorldPacketDecoder.Step
                                | ((header[3] & 0xFF) << 8)
                                | ((header[4] & 0xFF) << 16)
                                | ((header[5] & 0xFF) << 24);
-                checkpoint(Step.BODY);
+
+                if (pendingBodyLen == 0) {
+                    handlePacket(out, Unpooled.EMPTY_BUFFER);
+                    checkpoint(Step.HEADER);
+                } else {
+                    checkpoint(Step.BODY);
+                }
             }
             case BODY -> {
                 ByteBuf body = in.readRetainedSlice(pendingBodyLen);
                 try {
-                    WorldOpcode opcode = WorldOpcode.fromCode(pendingOpcode);
-                    if (opcode == null) {
-                        log.warn("Unknown opcode 0x{}, dropping", Integer.toHexString(pendingOpcode));
-                    } else {
-                        switch (opcode) {
-                            case C_MSG_AUTH_SESSION -> out.add(decodeAuthSession(body));
-                            case C_MSG_CHAR_ENUM -> out.add(new CharEnumRequest());
-                            default -> log.warn("Unhandled opcode {}, dropping", opcode);
-                        }
-                    }
+                    handlePacket(out, body);
                 } finally {
                     body.release();
                 }
                 checkpoint(Step.HEADER);
             }
+        }
+    }
+
+    private void handlePacket(List<Object> out, ByteBuf body) {
+        WorldOpcode opcode = WorldOpcode.fromCode(pendingOpcode);
+        if (opcode == null) {
+            log.warn("Unknown opcode 0x{}, dropping", Integer.toHexString(pendingOpcode));
+            return;
+        }
+        switch (opcode) {
+            case C_MSG_AUTH_SESSION -> out.add(decodeAuthSession(body));
+            case C_MSG_CHAR_ENUM    -> out.add(new CharEnumRequest());
+            case C_MSG_PING         -> out.add(new PingRequest(body.readIntLE()));
+            default -> log.warn("Unhandled opcode {}, dropping", opcode);
         }
     }
 

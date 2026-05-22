@@ -4,7 +4,7 @@ import com.example.world.infrastructure.netty.protocol.WorldOpcode;
 import io.netty.buffer.ByteBuf;
 
 public sealed interface ServerMessage
-        permits AuthChallengeMessage, AuthResponseMessage, AddonInfoMessage, CharEnumResponse {
+        permits AddonInfoMessage, AuthChallengeMessage, AuthResponseMessage, CharEnumResponse, PongMessage {
 
     WorldOpcode opcode();
 

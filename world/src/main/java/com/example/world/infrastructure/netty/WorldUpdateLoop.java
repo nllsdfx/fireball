@@ -33,7 +33,7 @@ public class WorldUpdateLoop implements SmartLifecycle {
 
     @Override
     public void start() {
-        scheduler = Executors.newScheduledThreadPool(1, Thread.ofVirtual().factory());
+        scheduler = Executors.newSingleThreadScheduledExecutor();
         lastUpdateTime = System.currentTimeMillis();
         updateTask = scheduler.scheduleAtFixedRate(this::update, 0, 100, TimeUnit.MILLISECONDS);
         running = true;

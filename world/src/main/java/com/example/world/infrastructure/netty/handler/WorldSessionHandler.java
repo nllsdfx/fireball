@@ -34,7 +34,7 @@ public class WorldSessionHandler extends SimpleChannelInboundHandler<Object> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
-        session.enqueue(() -> session.dispatch(msg));
+        session.dispatch(msg);
     }
 
     @Override

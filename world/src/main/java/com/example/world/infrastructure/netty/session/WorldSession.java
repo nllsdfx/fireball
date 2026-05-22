@@ -25,8 +25,8 @@ public class WorldSession {
 
     @Getter @Setter private ChannelHandlerContext ctx;
     @Getter @Setter private int serverSeed;
-    @Getter @Setter private State state = State.AUTH_SESSION;
-    @Getter @Setter private Long accountId;
+    @Getter @Setter private volatile State state = State.AUTH_SESSION;
+    @Getter @Setter private volatile Long accountId;
 
     private final ConcurrentLinkedQueue<Runnable> taskQueue = new ConcurrentLinkedQueue<>();
 

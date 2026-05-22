@@ -34,9 +34,8 @@ public class HandlerMap implements DomainHandler {
             return;
         }
         if (session.getState() != entry.requiredState()) {
-            log.warn("Packet {} rejected: state={}, required={}",
+            log.warn("Packet {} rejected: state={}, required={} — dropping",
                     msg.getClass().getSimpleName(), session.getState(), entry.requiredState());
-            session.getCtx().close();
             return;
         }
         entry.handler().accept(session, msg);

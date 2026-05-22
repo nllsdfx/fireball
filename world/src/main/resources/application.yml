@@ -12,8 +12,8 @@ spring:
 netty:
   port: 8085
   boss-threads: 1
-  worker-threads: 0
+  worker-threads: 1
 
-#logging:
-#  level:
-#    root: debug
+logging:
+  level:
+    root: debug

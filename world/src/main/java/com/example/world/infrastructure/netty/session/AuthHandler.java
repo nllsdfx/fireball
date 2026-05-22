@@ -57,8 +57,9 @@ public class AuthHandler extends HandlerMap {
                 session.setAccountId(id);
                 session.getCtx().channel().attr(CipherAttr.KEY).set(cipher);
                 session.getCtx().write(new AddonInfoMessage(pkt.addonCount()));
-                session.getCtx().writeAndFlush(AuthResponseMessage.ok());
+                session.getCtx().write(AuthResponseMessage.ok());
                 session.setState(WorldSession.State.IN_WORLD);
+                session.getCtx().flush();
                 log.info("Account '{}' (id={}) authenticated on world server", pkt.account(), id);
             };
         });
