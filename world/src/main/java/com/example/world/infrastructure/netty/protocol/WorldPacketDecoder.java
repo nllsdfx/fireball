@@ -7,6 +7,7 @@ import com.example.world.infrastructure.netty.protocol.packet.in.CharCreateReque
 import com.example.world.infrastructure.netty.protocol.packet.in.CharDeleteRequest;
 import com.example.world.infrastructure.netty.protocol.packet.in.CharEnumRequest;
 import com.example.world.infrastructure.netty.protocol.packet.in.PingRequest;
+import com.example.world.infrastructure.netty.protocol.packet.in.PlayerLoginRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -88,11 +89,12 @@ public class WorldPacketDecoder extends ReplayingDecoder<WorldPacketDecoder.Step
             return;
         }
         switch (opcode) {
-            case C_MSG_AUTH_SESSION -> out.add(decodeAuthSession(body));
-            case C_MSG_CHAR_CREATE  -> out.add(decodeCharCreate(body));
-            case C_MSG_CHAR_ENUM    -> out.add(new CharEnumRequest());
-            case C_MSG_CHAR_DELETE  -> out.add(new CharDeleteRequest(body.readLongLE()));
-            case C_MSG_PING         -> out.add(new PingRequest(body.readIntLE()));
+            case C_MSG_AUTH_SESSION  -> out.add(decodeAuthSession(body));
+            case C_MSG_CHAR_CREATE   -> out.add(decodeCharCreate(body));
+            case C_MSG_CHAR_ENUM     -> out.add(new CharEnumRequest());
+            case C_MSG_CHAR_DELETE   -> out.add(new CharDeleteRequest(body.readLongLE()));
+            case C_MSG_PLAYER_LOGIN  -> out.add(new PlayerLoginRequest(body.readLongLE()));
+            case C_MSG_PING          -> out.add(new PingRequest(body.readIntLE()));
             default -> log.warn("Unhandled opcode {}, dropping", opcode);
         }
     }

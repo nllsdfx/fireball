@@ -10,6 +10,7 @@ import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.example.world.persistence.generated.Tables.CHARACTER;
 
@@ -55,6 +56,13 @@ public class CharacterRepositoryImpl implements CharacterRepository {
         return dsl.selectFrom(CHARACTER)
                 .where(CHARACTER.ACCOUNT_ID.eq(accountId))
                 .fetch(this::toCharacter);
+    }
+
+    @Override
+    public @NonNull Optional<Character> findById(@NonNull Long id, @NonNull Long accountId) {
+        return dsl.selectFrom(CHARACTER)
+                .where(CHARACTER.ID.eq(id).and(CHARACTER.ACCOUNT_ID.eq(accountId)))
+                .fetchOptional(this::toCharacter);
     }
 
     private Character toCharacter(CharacterRecord r) {

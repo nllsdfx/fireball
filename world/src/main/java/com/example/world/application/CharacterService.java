@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +19,11 @@ public class CharacterService implements CharacterUseCase {
     @Override
     public @NonNull List<Character> listCharacters(@NonNull Long accountId) {
         return characterRepository.findByAccountId(accountId);
+    }
+
+    @Override
+    public @NonNull Optional<Character> getCharacter(@NonNull Long id, @NonNull Long accountId) {
+        return characterRepository.findById(id, accountId);
     }
 
     @Override
